@@ -50,6 +50,12 @@ Antes de montar o copy, consultar a seção "Vocabulário do público" do brand-
 
 ---
 
+## Passo 0.5 — Criar checklist de execução (obrigatório)
+
+Antes de coletar os dados do post, criar uma lista TodoWrite com os gates obrigatórios desta skill: Passo 1.8 (Humanizar o texto), Passo 2.6 (Autoavaliação visual), Passo 2.7 (Criar legenda). Ver [[auditoria-execucao-skills]] — marcar cada item `completed` só quando a etapa de fato rodar.
+
+---
+
 ## Passo 1 — Coletar dados do post
 
 Perguntar ao usuário antes de gerar:
@@ -249,6 +255,8 @@ O bloco de legenda + hashtags retornado é apresentado junto com o preview no Fl
 ---
 
 ## Fluxo de revisão e exportação
+
+**Auditoria antes de apresentar (obrigatório):** reconferir a lista TodoWrite do Passo 0.5 — todos os itens devem estar `completed` antes de mostrar qualquer preview ao usuário. Se algum estiver pendente, executar a etapa faltante primeiro (ver [[auditoria-execucao-skills]]).
 
 Seguir o "Fluxo de revisão — loop obrigatório" e a "Exportação — perfil Feed 4:5 (PNG 1080×1350px)" de `_sistema/referencias/templates-post-instagram.md`. Apresentar a legenda do Passo 2.7 junto com o preview da arte — se o feedback do usuário mudar texto ou dado que a legenda referencia, repetir o Passo 2.7 antes de exportar.
 
