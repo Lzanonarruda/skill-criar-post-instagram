@@ -52,7 +52,7 @@ Antes de montar o copy, consultar a seção "Vocabulário do público" do brand-
 
 ## Passo 0.5 — Criar checklist de execução (obrigatório)
 
-Antes de coletar os dados do post, criar uma lista TodoWrite com os gates obrigatórios desta skill: Passo 1.8 (Humanizar o texto), Passo 2.6 (Autoavaliação visual), Passo 2.7 (Criar legenda). Ver [[auditoria-execucao-skills]] — marcar cada item `completed` só quando a etapa de fato rodar.
+Antes de coletar os dados do post, gerar um identificador curto pra esta execução (ex: horário atual) e invocar `/auditoria-execucao` em modo bootstrap, passando `criar-post-instagram:<id-execucao>` e os gates: Passo 1.8 (Humanizar o texto), Passo 2.6 (Autoavaliação visual), Passo 2.7 (Criar legenda). Guardar esse `<id-execucao>` pra usar também no fechamento.
 
 ---
 
@@ -188,6 +188,8 @@ Substituir todos os tokens (`{brand_primary}`, `{path_logo}` etc.) pelos valores
 
 **Antes de invocar `/validar-arte-visual`, se o HTML usar algum elemento posicionado de forma absoluta/flutuante perto de outro bloco (badge, pill, selo, tag sobre um card, foto ou print, ou texto de CTA/corpo próximo a um logo posicionado em `position:absolute` no rodapé):** medir as caixas delimitadoras dos elementos envolvidos (via `getBoundingClientRect` no browser, comparando `top`/`bottom`/`left`/`right` de cada um) e confirmar que não há sobreposição não intencional antes de considerar a arte pronta pra autoavaliação. Não confiar só na leitura visual do preview — uma sobreposição de poucos pixels no preview vira uma faixa visível na exportação final em escala maior, e já passou despercebida tanto na geração quanto na autoavaliação visual numa sessão anterior.
 
+**Essa medição não é condicional a "parecer arriscado":** sempre que o corpo/título tiver comprimento variável (depende do conteúdo real daquele post) e estiver no mesmo bloco visual que um CTA, medir é obrigatório, ponto — ver "Quando medir sobreposição deixa de ser opcional" em `templates-post-instagram.md`. Depois de medir, checar também a "Erros que reiniciam o loop automaticamente" (mesmo arquivo) — inclui linha viúva na última linha de um bloco de texto multi-linha, que a leitura visual tende a deixar passar.
+
 Com o post já renderizado na resolução final (1080×1350, mesma regra do Fluxo de revisão), primeiro rodar a "Verificação automática de contraste (medição por pixel)" de `_sistema/referencias/templates-post-instagram.md` — corrigir qualquer bloco de texto reprovado antes de seguir. Só depois invocar `/validar-arte-visual` (ver [[validar-arte-visual]]) passando:
 
 - O caminho do PNG renderizado
@@ -223,6 +225,8 @@ Quando o relatório de `validar-arte-visual` apontar um destes problemas, o ajus
 - **Salto grande de tamanho entre dois textos vizinhos** (ex: citação decorativa gigante ao lado de uma legenda pequena) → aproximar as escalas (reduzir o elemento maior, aumentar levemente o menor) até a transição parecer parte do mesmo sistema visual, não dois elementos de peças diferentes coladas
 - **Elemento centralizado no restante da composição mas um bloco (ex: header/tag) ficou alinhado à esquerda por padrão** → revisar se todos os blocos da mesma peça compartilham o mesmo eixo de alinhamento; numa composição centralizada, cabeçalho/tag/rótulo também centralizam, não só o conteúdo principal
 - **Texto de CTA (ou último elemento de um bloco de conteúdo centralizado) sobrepondo o logo no rodapé** → sempre que o layout tiver logo `position:absolute` no rodapé (canto inferior direito, por exemplo) E o bloco de conteúdo acima usar `justify-content:center` numa altura fixa, medir via `getBoundingClientRect` antes de considerar pronto — não confiar na leitura visual do preview. Se não houver folga de pelo menos ~15-20px entre o fim do CTA e o topo do logo, aumentar o `padding-bottom` do container de conteúdo (calibrar por medição real, não estimativa — no caso real corrigido, 52px de padding-bottom resolveu um caso de ~22px de sobreposição). Erro real encontrado em produção (25/07/2026): a primeira versão saiu com o CTA sobrepondo o logo, só detectado porque o Léo apontou visualmente — a autoavaliação informal não pegou
+- **Linha viúva no título ou corpo** (última linha de um bloco de texto multi-linha com só 1 palavra sozinha) → reescrever o final da frase até a última linha ter 2+ palavras, nunca hifenizar ou forçar quebra manual (ver "Erros que reiniciam o loop automaticamente" em `templates-post-instagram.md`)
+- **CTA num container `position:absolute` separado do ícone/título/corpo, deixando a composição pouco harmônica** (mesmo sem sobreposição técnica) → quando o CTA é parte semântica do bloco de conteúdo, mover pro mesmo flex container do ícone/título/corpo e centralizar o bloco inteiro (`justify-content:center`); o logo continua ancorado no canto fixo, fora desse container (ver "Quando o CTA é parte do bloco de conteúdo" em `templates-post-instagram.md`)
 
 ---
 
@@ -256,7 +260,7 @@ O bloco de legenda + hashtags retornado é apresentado junto com o preview no Fl
 
 ## Fluxo de revisão e exportação
 
-**Auditoria antes de apresentar (obrigatório):** reconferir a lista TodoWrite do Passo 0.5 — todos os itens devem estar `completed` antes de mostrar qualquer preview ao usuário. Se algum estiver pendente, executar a etapa faltante primeiro (ver [[auditoria-execucao-skills]]).
+**Auditoria antes de apresentar (obrigatório):** invocar `/auditoria-execucao` em modo fechamento, passando `criar-post-instagram:<id-execucao>` (o mesmo gerado no bootstrap). Se retornar `AUDITORIA_INCOMPLETA`, executar a etapa faltante e repetir a auditoria antes de mostrar qualquer preview ao usuário.
 
 Seguir o "Fluxo de revisão — loop obrigatório" e a "Exportação — perfil Feed 4:5 (PNG 1080×1350px)" de `_sistema/referencias/templates-post-instagram.md`. Apresentar a legenda do Passo 2.7 junto com o preview da arte — se o feedback do usuário mudar texto ou dado que a legenda referencia, repetir o Passo 2.7 antes de exportar.
 
