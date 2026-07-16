@@ -52,7 +52,7 @@ Antes de montar o copy, consultar a seção "Vocabulário do público" do brand-
 
 ## Passo 0.5 — Criar checklist de execução (obrigatório)
 
-Antes de coletar os dados do post, gerar um identificador curto pra esta execução (ex: horário atual) e invocar `/auditoria-execucao` em modo bootstrap, passando `criar-post-instagram:<id-execucao>` e os gates: Passo 1.8 (Humanizar o texto), Passo 2.6 (Autoavaliação visual), Passo 2.7 (Criar legenda). Guardar esse `<id-execucao>` pra usar também no fechamento.
+Antes de coletar os dados do post, gerar um identificador curto pra esta execução (ex: horário atual) e invocar `/auditoria-execucao` em modo bootstrap, passando `criar-post-instagram:<id-execucao>` e os gates: Passo 1.8 (Humanizar o texto), Passo 2 (Validar dimensões do layout), Passo 2.6 (Autoavaliação visual), Passo 2.7 (Criar legenda). Guardar esse `<id-execucao>` pra usar também no fechamento.
 
 ---
 
@@ -60,7 +60,7 @@ Antes de coletar os dados do post, gerar um identificador curto pra esta execuç
 
 Perguntar ao usuário antes de gerar:
 
-1. **Tipo de post** — identificar pelo conteúdo (ver tabela abaixo)
+1. **Tipo de post** — identificar pelo conteúdo (ver tabela abaixo). Antes de fechar o Tipo escolhido, checar rapidamente os 2–3 posts mais recentes do cliente (calendário oficial, se existir) contra a "Regra de variação visual" de `templates-post-instagram.md` — evitar repetir o mesmo arranjo visual do post anterior, mesmo que o tipo de conteúdo indicado seja o mesmo da matriz de escolha
 2. **Conteúdo** — texto, dados, nome do protagonista, etc.
 3. **Imagem** — por padrão, antes de perguntar ao usuário se ele tem foto própria, tentar buscar no banco de imagens via MCP `banco-imagens` (ver [[mcp-banco-imagens]]):
 
@@ -69,7 +69,7 @@ Perguntar ao usuário antes de gerar:
 - Se a imagem bater tanto em score quanto em coerência temática, apresentá-la ao usuário como sugestão ("Achei esta imagem no banco, quer usar?") antes de embutir; só usa após confirmação
 - **Antes de desistir e cair pro tipográfico, tentar reformular a busca** (outra consulta, outra categoria de `listar_indice` que pareça plausível pro tema) em vez de decidir sozinho na primeira tentativa sem sucesso. Uma consulta genérica pode não achar nada relevante enquanto uma categoria mais específica tem exatamente a foto certa
 - **Só cai para o fluxo manual (perguntar se o usuário tem foto própria, ou seguir com ícone puro) depois de tentar reformular e mesmo assim não haver imagem com contexto relevante** — banco vazio, todas as imagens já usadas, nenhuma reformulação resolveu, ou MCP indisponível. Ao cair pro fluxo manual, informar ao usuário rapidamente o que foi tentado (ex: "busquei por X e Y no banco, não achei nada coerente com o tema"), para que ele possa apontar uma categoria/pasta específica se souber de uma. **Nunca bloquear a geração do post por causa do banco de imagens.**
-- Imagem fornecida pelo usuário (não veio do banco) deve ser indexada com `indexar_imagem`, para engordar o banco ao longo do tempo
+- Imagem fornecida pelo usuário (não veio do banco) deve ser indexada com `indexar_imagem` somente após a exportação bem-sucedida do post (mesmo momento de `marcar_imagem_usada`, ver Fluxo de revisão), nunca antes — evita indexar uma imagem de um post que acabou não sendo aprovado ou foi abandonado no meio do loop de revisão
 
 | Conteúdo do post | Tipo |
 |---|---|
@@ -205,17 +205,19 @@ Com o post já renderizado na resolução final (1080×1350, mesma regra do Flux
 
 ### Guia de correção rápida (específico deste template HTML/CSS)
 
+Esta lista traduz um achado de `/validar-arte-visual` ou da Verificação automática de contraste em um ajuste técnico de CSS deste template. Para a lista geral de erros que reiniciam o loop automaticamente ou de composição a evitar (não específicos de CSS), ver `templates-post-instagram.md` → "Erros que reiniciam o loop automaticamente" e "Erros visuais comuns a evitar".
+
 Quando o relatório de `validar-arte-visual` apontar um destes problemas, o ajuste técnico neste template é:
 
 - **Bloco reprovado na Verificação automática de contraste** (razão medida abaixo do threshold) → não tentar adivinhar a cor certa; escurecer/clarear o texto na direção do fim "ink" da rampa da marca (nunca cinza genérico) e remedir até passar do threshold. Se o fundo for uma foto ou gradiente, considerar uma faixa/overlay sólido atrás do texto em vez de só mudar a cor da fonte
 - **Respiro concentrado num vazio só** (critério 4) → nunca usar `margin-bottom:auto` sozinho pra empurrar o rodapé; definir gaps fixos entre cada bloco e conferir a soma
 - **Sombra de foto pesada** (critério 9) → reduzir opacidade/blur do `box-shadow`; na dúvida entre dois valores, escolher o mais sutil
-- **CTA e logo desproporcionais** (Regra D) → ajustar `font-size` do CTA e `width` do logo até ficarem parceiros visuais no rodapé
-- **Corte desconfortável de rosto** (Regra B) → ao mexer em `object-position` ou na altura da caixa da foto pra resolver outro problema (ex: fundo bagunçado), sempre reconferir se a mudança não cortou olhos/boca/queixo/topo da cabeça de alguém
-- **Selfie muito próxima** (Regra C) → não force crop artificial; registrar como limitação do insumo e, se fizer sentido, sugerir ao usuário fotos futuras com mais margem ao redor das pessoas
-- **Elemento decorativo fraco demais** (Regra A) → decidir entre aumentar contraste/espessura ou remover, nunca deixar ambíguo
-- **Dado suspeito ou incorreto** (Regra G) → conferir manualmente número de WhatsApp, telefone, endereço, horário, serviço ou data que entrou no texto contra `{cliente}/brand-profile.md` → "Dados da empresa" antes de fechar o HTML; se não der pra confirmar, não afirmar que está certo — sinalizar ao usuário em vez de deixar passar
-- **Elemento perto demais da borda** (Regra H) → respeitar o padding lateral mínimo do layout escolhido (ver tabela de cada tipo em `templates-post-instagram.md`); nunca reduzir o padding só pra caber mais texto
+- **CTA e logo desproporcionais** (Regra D de validar-arte-visual) → ajustar `font-size` do CTA e `width` do logo até ficarem parceiros visuais no rodapé
+- **Corte desconfortável de rosto** (Regra B de validar-arte-visual) → ao mexer em `object-position` ou na altura da caixa da foto pra resolver outro problema (ex: fundo bagunçado), sempre reconferir se a mudança não cortou olhos/boca/queixo/topo da cabeça de alguém
+- **Selfie muito próxima** (Regra C de validar-arte-visual) → não force crop artificial; registrar como limitação do insumo e, se fizer sentido, sugerir ao usuário fotos futuras com mais margem ao redor das pessoas
+- **Elemento decorativo fraco demais** (Regra A de validar-arte-visual) → decidir entre aumentar contraste/espessura ou remover, nunca deixar ambíguo
+- **Dado suspeito ou incorreto** (Regra G de validar-arte-visual) → conferir manualmente número de WhatsApp, telefone, endereço, horário, serviço ou data que entrou no texto contra `{cliente}/brand-profile.md` → "Dados da empresa" antes de fechar o HTML; se não der pra confirmar, não afirmar que está certo — sinalizar ao usuário em vez de deixar passar
+- **Elemento perto demais da borda** (Regra H de validar-arte-visual) → respeitar o padding lateral mínimo do layout escolhido (ver tabela de cada tipo em `templates-post-instagram.md`); nunca reduzir o padding só pra caber mais texto
 - **Imagem cortando conteúdo essencial (texto de print, rosto)** → provável incompatibilidade entre a proporção do container (`object-fit:cover`) e a proporção real da imagem-fonte; medir a imagem e ajustar a altura do container antes de ajustar qualquer outra coisa (ver Regra 5 de "Imagens fornecidas pelo usuário" em `templates-post-instagram.md`)
 - **Foto de produto/objeto do banco de imagens (item isolado em fundo branco) cortando ou "sobrando" espaço vazio demais dentro do card** → nunca insistir alternando só `cover`/`contain`/`object-position` no mesmo card pequeno — primeiro checar se a foto tem excesso de fundo próprio ao redor do assunto (recortar pela caixa real do conteúdo antes de embutir) e, se o assunto precisar ficar 100% visível, migrar para a variação "Foto de topo (full-bleed, sem sobreposição)" do Layout E2 em vez de forçar num card — ver Regra 6 de "Imagens fornecidas pelo usuário" em `templates-post-instagram.md`
 - **Número gigante (hero) parecendo desalinhado/solto do resto do título** → montar número + frase como um só bloco de texto corrido (spans inline), não como linha separada + parágrafo à parte (ver "Modo Hero vs Modo Seguro" em `templates-post-instagram.md`)
@@ -291,3 +293,15 @@ status: pronto
 ## Princípios de design e restrições visuais
 
 Ver `{cliente}/brand-profile.md`, seções "Princípios de design" e "Restrições visuais".
+
+---
+
+## Casos especiais
+
+**Tipo de post não identificado claramente pela tabela do Passo 1:** inferir pelo objetivo declarado do post e confirmar com o usuário antes de gerar, em vez de forçar o tipo mais próximo silenciosamente.
+
+**Banco de imagens indisponível a sessão inteira (MCP fora do ar):** cair direto pro fluxo manual (perguntar foto própria ou seguir com ícone puro) sem tentar reformular buscas repetidamente; nunca bloquear a geração do post por isso.
+
+**`/gerador-de-post-educativo-para-instagram` retorna output incompleto ou fora do formato esperado (Tipo B):** não inventar o texto faltante — reexecutar a invocação uma vez com o mesmo input; se persistir, informar ao usuário e pedir o conteúdo diretamente.
+
+**Imagem fornecida pelo usuário em formato não identificável pelo comando `file`:** perguntar ao usuário a extensão/origem real antes de assumir um MIME type e seguir.
